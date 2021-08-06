@@ -33,7 +33,9 @@ get_check_seed(){
     #   ID2|seedname2'
     check_seed=`echo "$ALL_LIST_INFO" | grep $STATUS | grep -v ID`
     [ "x$check_seed" = 'x' ] && exit 1
-    id_name_list=`echo "$check_seed" | awk '{printf("%s|", $1); for (i=10;i<=NF;i++)printf("%s ", $i); print " "}'`
+    id_name_list=`echo "$check_seed" | \
+        awk '{printf("%s|", $1); for (i=10;i<=NF;i++)printf("%s ", $i); print " "}' | \
+        sed 's/|Verify /|/g'`
     # TODO get checksum group by seed name
     if [ "x$DEBUG" = 'xtrue' ]; then
         echo "[DEBUG] seed info which need to be checked: " >&2
