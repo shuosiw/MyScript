@@ -30,7 +30,18 @@ green_echo(){
     echo -e "\033[32m$1 \033[0m"
 }
 
+helpme(){
+    echo -e 'For transmission to skip hash check.'
+    echo -e '\t-d, Enter debug mode.'
+    echo -e '\t-t, Running traditional mode, just check md5 for all seed which is verifying or will verify.'
+    echo -e '\t-n, Running new mode, auto skip check then get md5 of all stopped seed.'
+    echo -e '\t-k, Skip retry for new mode when getting verifying seed.'
+    echo -e '\t-h, print help message then exit.'
+    exit 0
+}
+
 detect_args(){
+    [ $# -eq 0 ] && helpme
     while getopts ":dtnk" opt; do
         case $opt in
             d)
@@ -56,6 +67,9 @@ detect_args(){
             k)
                 MAX_RETRY_SKIP_VERIFYING=0
                 green_echo "Skip waiting retry..."
+                ;;
+            h)
+                helpme
                 ;;
         esac
     done
