@@ -107,11 +107,13 @@ check_with_complete_seed_info(){
             echo "md5sum match: $check_seed_id & $cpid, skip other same seed check"
             echo -n "old seed info:"
             echo "$ALL_LIST_INFO" | grep " $cpid " | awk '{$5=""; $6=""; $7=""; print}'
-            echo
             SKIP_CHECK_LIST="$SKIP_CHECK_LIST $check_seed_id"
             break
+        else
+            red_echo "md5($check_seed_md5) not match with torrent(id: $cpid): $cpmd5" >&2
         fi
     done
+    echo
 }
 
 
