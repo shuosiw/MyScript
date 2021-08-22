@@ -12,13 +12,15 @@ AUTH='username:password'
 
 STATUS='Verify'
 CHECK_SEED_NO_IN_STATUS='Verify|Stopped'
-ALL_LIST_INFO=`$TRBIN $HOST -n $AUTH -l 2>&1`
+MAX_RETRY_SKIP_VERIFYING=60
+ALL_LIST_INFO=''
 SKIP_CHECK_LIST=''
 ALL_CHECK_LIST=''
 NO_EXIT_RES_LIST=''
 
 ### DEBUG MODE
 DEBUG=false
+MODEL='Traditional'
 
 red_echo(){
     echo -e "\033[31m$1 \033[0m"
@@ -29,10 +31,30 @@ green_echo(){
 }
 
 detect_args(){
-    if [ "x$1" = 'x-d' ]; then
-        DEBUG=true
-        green_echo "[DEBUG] Enter Debug Mode..."
-    fi
+    while getopts ":dtn" opt; do
+        case $opt in
+            d)
+                DEBUG=true
+                green_echo "[DEBUG] Enter Debug Mode..."
+                ;;
+            t)
+                MODEL='Traditional'
+                STATUS='Verify'
+                green_echo "Running Traditional Model: "
+                echo -e '\t1. check all torrents which is verifying or waiting for verifying'
+                echo -e '\t2. manually skip verify one by one with "Ask tracker for more peers"'
+                ;;
+            n)
+                MODEL='New'
+                STATUS='Stopped'
+                green_echo "Running New Model in 5 seconds: "
+                echo -e '\t1. skip all verifying torrent(you need to setting NO AUTO START)'
+                echo -e '\t2. check all stopped torrent'
+                echo -e '\t3. manually start all torrents which verify successfully'
+                sleep 5
+                ;;
+        esac
+    done
 }
 
 get_check_seed(){
@@ -178,8 +200,38 @@ generate_skip_check_info(){
 }
 
 
+always_skip_verifying(){
+    retry_time=0
+    green_echo 'Starting skip verifying torrent:' >&2
+    while true; do
+        if [ $retry_time -gt $MAX_RETRY_SKIP_VERIFYING ]; then
+            red_echo "reach max retry time for skip verifying torrent: $MAX_RETRY_SKIP_VERIFYING"
+            break
+        fi
+        verifying_id=`$TRBIN $HOST -n $AUTH -l 2>&1 | grep Verifying | awk '{print $1}'`
+        if [ "x$verifying_id" = 'x' ]; then
+            echo 'no verifying torrent, skip...' >&2
+            let retry_time++
+            sleep 1
+        else
+            ret=`$TRBIN $HOST -n $AUTH -t $verifying_id --reannounce 2>&1`
+            echo -n "torrent id: $verifying_id - "
+            if echo "$ret" | grep -w success; then
+                retry_time=0
+                sleep 3
+            fi
+        fi
+    done
+}
+
+
 main(){
     detect_args $@
+    if [ "x$MODEL" = 'xNew' ]; then
+        always_skip_verifying
+        green_echo 'Starting check torrents in Stopped status...' >&2
+    fi
+    ALL_LIST_INFO=`$TRBIN $HOST -n $AUTH -l 2>&1`
     chkseed_id_names=`get_check_seed`
     echo
     green_echo "########### WAIT FOR CHECK ###########"
