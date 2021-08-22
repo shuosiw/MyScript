@@ -62,7 +62,7 @@ get_complete_seed_with_name(){
     seed_name="$1"
     complete_seed_id_list=`echo "$ALL_LIST_INFO" | grep -F "$seed_name" | grep -v $STATUS | awk '{print $1}'`
     if [ "x$DEBUG" = 'xtrue' ]; then
-        green_echo "[DEBUG] the id list of completed seed which has same name： $seed_name" >&2
+        green_echo "[DEBUG] the id list of completed seed which has same name: $seed_name" >&2
         echo "$complete_seed_id_list" >&2
     fi
     echo "$complete_seed_id_list"
