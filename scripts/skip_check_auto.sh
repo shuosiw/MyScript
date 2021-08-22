@@ -2,7 +2,7 @@
 #
 # File: skip_check_auto.sh
 # Desc: get check seed and auto detect whether it can skip check by name.
-# Date: 2021-08-06
+# Date: 2021-08-22
 
 # ============EDIT THIS============
 TRBIN='transmission-remote'
@@ -19,10 +19,18 @@ NO_EXIT_RES_LIST=''
 ### DEBUG MODE
 DEBUG=false
 
+red_echo(){
+    echo -e "\033[31m$1 \033[0m"
+}
+
+green_echo(){
+    echo -e "\033[32m$1 \033[0m"
+}
+
 detect_args(){
     if [ "x$1" = 'x-d' ]; then
         DEBUG=true
-        echo "Enter Debug Mode..."
+        green_echo "[DEBUG] Enter Debug Mode..."
     fi
 }
 
@@ -38,7 +46,7 @@ get_check_seed(){
         sed 's/|Verify /|/g'`
     # TODO get checksum group by seed name
     if [ "x$DEBUG" = 'xtrue' ]; then
-        echo "[DEBUG] seed info which need to be checked: " >&2
+        green_echo "[DEBUG] seed info which need to be checked: " >&2
         echo "$id_name_list" >&2
     fi
     echo "$id_name_list"
@@ -54,7 +62,7 @@ get_complete_seed_with_name(){
     seed_name="$1"
     complete_seed_id_list=`echo "$ALL_LIST_INFO" | grep -F "$seed_name" | grep -v $STATUS | awk '{print $1}'`
     if [ "x$DEBUG" = 'xtrue' ]; then
-        echo "[DEBUG] the id list of completed seed which has same name： $seed_name" >&2
+        green_echo "[DEBUG] the id list of completed seed which has same name： $seed_name" >&2
         echo "$complete_seed_id_list" >&2
     fi
     echo "$complete_seed_id_list"
@@ -69,13 +77,13 @@ get_check_seed_md5_with_id(){
     seed_id="$1"
     seed_info=`$TRBIN $HOST -n $AUTH -t $seed_id -if 2>/dev/null`
     if [ "x$seed_info" = "x" ]; then
-        echo "cannot get seed info with id: $seed_id" >&2
+        red_echo "cannot get seed info with id: $seed_id" >&2
         exit 1
     else
         seed_info_md5=`echo "$seed_info" | awk '{$1=""; $2=""; print}' | sort -bk 3 | md5sum | awk '{print $1}'`
     fi
     if [ "x$DEBUG" = 'xtrue' ]; then
-        echo "[DEBUG] the md5sum of specified seed id: $seed_id" >&2
+        green_echo "[DEBUG] the md5sum of specified seed id: $seed_id" >&2
         echo "$seed_info_md5" >&2
     fi
     echo "$seed_info_md5"
@@ -112,32 +120,32 @@ check_for_skip(){
     #       ID2|seedname2'
     check_list="$1"
     if [ "x$check_list" = 'x' ]; then
-        echo 'No seed need to be check, skip'
+        red_echo 'No seed need to be check, skip'
         exit 1
     fi
     echo
-    echo "########### SAME SEED CHECK ###########"
+    green_echo "########### SAME SEED CHECK ###########"
     while read check_seed; do
         chkid=`echo "$check_seed" | awk -F\| '{print $1}'`
         chkname=`echo "$check_seed" | awk -F\| '{print $2}'`
         if [ "x$DEBUG" = 'xtrue' ]; then
-            echo "[DEBUG] checking seed id: $chkid" >&2
-            echo "[DEBUG] checking seed name: $chkname" >&2
+            green_echo "[DEBUG] checking seed id: $chkid" >&2
+            green_echo "[DEBUG] checking seed name: $chkname" >&2
         fi
         echo "----------- check $check_seed"
         cplids=`get_complete_seed_with_name "$chkname"`
         if [ "x$cplids" = 'x' ]; then
             NO_EXIT_RES_LIST="$chkid|$chkname|-\n$NO_EXIT_RES_LIST"
-            echo "no completed seed with same name: $chkname"
+            red_echo "no completed seed with same name: $chkname"
             echo
         else
             check_with_complete_seed_info "$chkid" "$chkname" "$cplids"
         fi
     done <<< "$check_list"
     if [ "x$DEBUG" = 'xtrue' ]; then
-        echo "[DEBUG] all check seed info: " >&2
+        green_echo "[DEBUG] all check seed info: " >&2
         echo "$ALL_CHECK_LIST" >&2
-        echo "[DEBUG] all skip check seed id: " >&2
+        green_echo "[DEBUG] all skip check seed id: " >&2
         echo "$SKIP_CHECK_LIST" >&2
     fi
 }
@@ -157,10 +165,10 @@ generate_skip_check_info(){
     done`
     failed_info=`echo "$check_seed_info_list" | grep -Fve "$success_info"`
     echo
-    echo "######## SKIP CHECK SEED LIST ########"
+    green_echo "######## SKIP CHECK SEED LIST ########"
     echo "$success_info"
     echo
-    echo "######## CHECK SEED FAIL LIST ########"
+    red_echo "######## CHECK SEED FAIL LIST ########"
     echo "$failed_info"
     echo -e "$no_exit_resource_list"
 }
@@ -170,7 +178,7 @@ main(){
     detect_args $@
     chkseed_id_names=`get_check_seed`
     echo
-    echo "########### WAIT FOR CHECK ###########"
+    green_echo "########### WAIT FOR CHECK ###########"
     echo "$chkseed_id_names"
     check_for_skip "$chkseed_id_names"
     generate_skip_check_info "$ALL_CHECK_LIST" "$SKIP_CHECK_LIST" "$NO_EXIT_RES_LIST"
