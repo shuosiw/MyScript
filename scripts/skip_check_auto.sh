@@ -31,7 +31,7 @@ green_echo(){
 }
 
 detect_args(){
-    while getopts ":dtn" opt; do
+    while getopts ":dtnk" opt; do
         case $opt in
             d)
                 DEBUG=true
@@ -52,6 +52,10 @@ detect_args(){
                 echo -e '\t2. check all stopped torrent'
                 echo -e '\t3. manually start all torrents which verify successfully'
                 sleep 5
+                ;;
+            k)
+                MAX_RETRY_SKIP_VERIFYING=0
+                green_echo "Skip waiting retry..."
                 ;;
         esac
     done
