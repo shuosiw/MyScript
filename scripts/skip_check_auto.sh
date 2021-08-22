@@ -11,6 +11,7 @@ AUTH='username:password'
 # =================================
 
 STATUS='Verify'
+CHECK_SEED_NO_IN_STATUS='Verify|Stopped'
 ALL_LIST_INFO=`$TRBIN $HOST -n $AUTH -l 2>&1`
 SKIP_CHECK_LIST=''
 ALL_CHECK_LIST=''
@@ -60,7 +61,8 @@ get_complete_seed_with_name(){
     #   '1234
     #   1578'
     seed_name="$1"
-    complete_seed_id_list=`echo "$ALL_LIST_INFO" | grep -F "$seed_name" | grep -v $STATUS | awk '{print $1}'`
+    complete_seed_id_list=`echo "$ALL_LIST_INFO" | grep -F "$seed_name" | \
+        grep -Ev "$CHECK_SEED_NO_IN_STATUS" | awk '{print $1}'`
     if [ "x$DEBUG" = 'xtrue' ]; then
         green_echo "[DEBUG] the id list of completed seed which has same name: $seed_name" >&2
         echo "$complete_seed_id_list" >&2
