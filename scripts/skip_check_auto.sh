@@ -2,7 +2,7 @@
 #
 # File: skip_check_auto.sh
 # Desc: get check seed and auto detect whether it can skip check by name.
-# Date: 2021-08-22
+# Date: 2021-11-30
 
 # ============EDIT THIS============
 TRBIN='transmission-remote'
@@ -42,7 +42,7 @@ helpme(){
 
 detect_args(){
     [ $# -eq 0 ] && helpme
-    while getopts ":dtnk" opt; do
+    while getopts ":dtnkr:" opt; do
         case $opt in
             d)
                 DEBUG=true
@@ -58,11 +58,14 @@ detect_args(){
             n)
                 MODEL='New'
                 STATUS='Stopped'
-                green_echo "Running New Model in 5 seconds: "
+                green_echo "Running New Model: "
                 echo -e '\t1. skip all verifying torrent(you need to setting NO AUTO START)'
                 echo -e '\t2. check all stopped torrent'
                 echo -e '\t3. manually start all torrents which verify successfully'
-                sleep 5
+                ;;
+            r)
+                MAX_RETRY_SKIP_VERIFYING=$OPTARG
+                green_echo "retry for $MAX_RETRY_SKIP_VERIFYING time waiting for new checking torrent..."
                 ;;
             k)
                 MAX_RETRY_SKIP_VERIFYING=0
