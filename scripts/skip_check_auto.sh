@@ -2,7 +2,7 @@
 #
 # File: skip_check_auto.sh
 # Desc: get check seed and auto detect whether it can skip check by name.
-# Date: 2021-11-30
+# Date: 2021-12-18
 
 # ============EDIT THIS============
 TRBIN='transmission-remote'
@@ -145,6 +145,7 @@ check_with_complete_seed_info(){
     check_seed_md5=`get_check_seed_md5_with_id $check_seed_id`
     ALL_CHECK_LIST=`echo -e "$check_seed_id|$check_seed_name|$check_seed_md5\n$ALL_CHECK_LIST"`
     for cpid in $complete_seed_ids; do
+        cpid=`echo $cpid | tr -d '*'`
         cpmd5=`get_check_seed_md5_with_id $cpid`
         if [ "x$check_seed_md5" = "x$cpmd5" ]; then
             echo "md5sum match: $check_seed_id & $cpid, skip other same seed check"
