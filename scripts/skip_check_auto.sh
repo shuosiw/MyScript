@@ -2,7 +2,7 @@
 #
 # File: skip_check_auto.sh
 # Desc: get check seed and auto detect whether it can skip check by name.
-# Date: 2021-12-18
+# Date: 2022-03-28
 
 # ============EDIT THIS============
 TRBIN='transmission-remote'
@@ -37,6 +37,7 @@ helpme(){
     echo -e '\t-n, Running new mode, auto skip check then get md5 of all stopped seed.'
     echo -e '\t-k, Skip retry for new mode when getting verifying seed.'
     echo -e '\t-h, print help message then exit.'
+    echo -e '\t-r [seconds], Setting max retry times to get verifying torrent, default is 60.'
     exit 0
 }
 
